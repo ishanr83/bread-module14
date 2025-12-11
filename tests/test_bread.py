@@ -48,7 +48,7 @@ class TestBREAD:
 
     def test_division_by_zero(self, client):
         res = client.post("/api/calculations", json={"operation": "divide", "operand_a": 10, "operand_b": 0})
-        assert res.status_code == 422
+        assert res.status_code == 400
 
     def test_health(self, client):
         res = client.get("/health")

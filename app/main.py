@@ -29,16 +29,18 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 def perform_calculation(operation: str, a: float, b: float) -> float:
-    ops = {
-        "add": lambda x, y: x + y,
-        "subtract": lambda x, y: x - y,
-        "multiply": lambda x, y: x * y,
-        "divide": lambda x, y: x / y if y != 0 else None
-    }
-    result = ops.get(operation, lambda x, y: None)(a, b)
-    if result is None:
-        raise ValueError("Invalid operation or division by zero")
-    return result
+    if operation == "add":
+        return a + b
+    elif operation == "subtract":
+        return a - b
+    elif operation == "multiply":
+        return a * b
+    elif operation == "divide":
+        if b == 0:
+            raise HTTPException(status_code=400, detail="Cannot divide by zero")
+        return a / b
+    else:
+        raise HTTPException(status_code=400, detail="Invalid operation")
 
 @app.get("/")
 async def root():
@@ -121,8 +123,6 @@ async def edit_calculation(calc_id: int, update: CalculationUpdate, db: Session 
     operation = update.operation.value if update.operation else calc.operation
     operand_a = update.operand_a if update.operand_a is not None else calc.operand_a
     operand_b = update.operand_b if update.operand_b is not None else calc.operand_b
-    if operation == "divide" and operand_b == 0:
-        raise HTTPException(status_code=400, detail="Cannot divide by zero")
     result = perform_calculation(operation, operand_a, operand_b)
     calc.operation = operation
     calc.operand_a = operand_a
