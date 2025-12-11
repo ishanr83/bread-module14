@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - BREAD Calculator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #1a1a2e, #16213e); min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #fff; }
+        .container { width: 100%; max-width: 400px; padding: 2rem; }
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; }
+        h1 { text-align: center; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.4rem; color: #94a3b8; }
+        input { width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 1rem; }
+        input:focus { outline: none; border-color: #4f46e5; }
+        .btn { width: 100%; padding: 0.8rem; background: #4f46e5; color: #fff; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; }
+        .btn:hover { background: #4338ca; }
+        .alert { padding: 0.8rem; border-radius: 8px; margin-bottom: 1rem; display: none; }
+        .alert-error { background: rgba(239,68,68,0.1); border: 1px solid #ef4444; color: #ef4444; }
+        .alert-success { background: rgba(34,197,94,0.1); border: 1px solid #22c55e; color: #22c55e; }
+        .alert.show { display: block; }
+        .footer { text-align: center; margin-top: 1rem; color: #94a3b8; }
+        .footer a { color: #4f46e5; }
+        .hint { font-size: 0.8rem; color: #64748b; margin-top: 0.3rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Register</h1>
+            <div id="alert" class="alert"></div>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" required>
+                    <div class="hint">Min 8 chars, include letter and number</div>
+                </div>
+                <button type="submit" class="btn">Create Account</button>
+            </form>
+            <div class="footer">Have an account? <a href="/login">Login</a></div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const alert = document.getElementById('alert');
+            const password = document.getElementById('password').value;
+            if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+                alert.textContent = 'Password must be 8+ chars with letter and number';
+                alert.className = 'alert alert-error show';
+                return;
+            }
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value,
+                        email: document.getElementById('email').value,
+                        password: password
+                    })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('token', data.access_token);
+                    alert.textContent = 'Account created!';
+                    alert.className = 'alert alert-success show';
+                    setTimeout(() => window.location.href = '/dashboard', 1000);
+                } else {
+                    alert.textContent = data.detail || 'Registration failed';
+                    alert.className = 'alert alert-error show';
+                }
+            } catch (err) {
+                alert.textContent = 'Network error';
+                alert.className = 'alert alert-error show';
+            }
+        });
+    </script>
+</body>
+</html>
